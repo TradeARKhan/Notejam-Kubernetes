@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: np-pv-claim
+  labels:
+    app: notejam-nodejs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notejam-nodejs
+  labels:
+    app: notejam-nodejs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notejam-nodejs
+  template:
+    metadata:
+      labels:
+        app: notejam-nodejs
+    spec:
+      containers:
+      - name: notejam-nodejs
+        image: arkdocr/notejam-nodejs
+        ports:
+          - containerPort: 3000
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysqldb-secret
+              key: mysql-root-password
+        - name: NODE_ENV
+          valueFrom:
+            secretKeyRef:
+              name: mysqldb-secret
+              key: nodejs-env
+        - name: MYSQL_HOST
+          value: mysqldb-service
+        - name: MYSQL_TCP_PORT
+          value: "3306"
+        volumeMounts:
+        - name: nodejs-persistent-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: nodejs-persistent-storage
+        persistentVolumeClaim:
+          claimName: np-pv-claim       
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-service
+spec:
+  selector:
+    app: notejam-nodejs
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+
+
+
+
+

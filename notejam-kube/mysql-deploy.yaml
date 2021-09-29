@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notejam-mysql
+  labels:
+    app: mysqldb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysqldb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysqldb
+    spec:
+      containers:
+      - image: arkdocr/mysql-db
+        name: mysql
+        ports:
+          - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysqldb-secret
+              key: mysql-root-password
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysqldb-service
+  labels:
+    app: mysqldb
+spec:
+  selector:
+    app: mysqldb
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+               
+
+
+

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysqldb-configmap
+data:
+  database_url: mysqldb-service
+  database_port: "3306"
